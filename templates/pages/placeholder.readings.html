@@ -1,0 +1,11 @@
+{% extends 'layouts/main.html' %} {% block title %}About{% endblock %} {% block content %}
+
+<div class="page-header">
+    <h1>{{ sensor_name }}</h1>
+</div>
+<p class="lead">These are readings from all sensors</p>
+
+
+{% for reading in readings %}
+<div>{{ reading.value }} {{ reading.unit }} from sensor {{ reading.sensor_id }}</div>
+{% endfor %} {% endblock %}

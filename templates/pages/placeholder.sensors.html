@@ -1,0 +1,9 @@
+{% extends 'layouts/main.html' %} {% block title %}About{% endblock %} {% block content %}
+
+<div class="page-header">
+    <h1>Sensors</h1>
+</div>
+
+{% for sensor in sensors %}
+<div> <a href={{ url_for( 'readings', sensor_name=sensor.name) }}>{{ sensor.name }}</a> </div>
+{% endfor %} {% endblock %}
