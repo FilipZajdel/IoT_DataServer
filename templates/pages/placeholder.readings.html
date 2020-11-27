@@ -3,9 +3,18 @@
 <div class="page-header">
     <h1>{{ sensor_name }}</h1>
 </div>
-<p class="lead">These are readings from all sensors</p>
+<p class="lead">These are readings from {{ sensor_name }}</p>
 
+<div style="margin:auto; width: 1200px; height: 700px">
+    <canvas id="readingsChart"></canvas>
+</div>
 
-{% for reading in readings %}
-<div>{{ reading.value }} {{ reading.unit }} from sensor {{ reading.sensor_id }}</div>
-{% endfor %} {% endblock %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    var sensor_name = "{{ sensor.name }}"
+    var label = "{{ sensor.measured_quantity }}"
+</script>
+<script src="/static/js/graph.js"></script>
+{% endblock %}

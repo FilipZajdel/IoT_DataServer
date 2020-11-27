@@ -104,16 +104,19 @@ class Sensor(Base):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), unique=True)
+    measured_quantity = db.Column(db.String(30))
     users = db.relationship("User", secondary=association_table,
                             back_populates="acc_sensors")
-    def __init__(self, name):
+
+    def __init__(self, name, measured_quantity):
         self.name = name
+        self.measured_quantity = measured_quantity
 
     def __repr__(self):
         return f"<{self.name}> <users granted: {self.users}>"
 
-    def create(name):
-        db_session.add(Sensor(name=name))
+    def create(name, measured_quantity):
+        db_session.add(Sensor(name=name, measured_quantity=measured_quantity))
         db_session.commit()
 
     def find(name):
@@ -150,6 +153,13 @@ class Reading(Base):
         db_session.add(Reading(value=value, unit=unit, sensor_id=sensor_id,
                         timestamp=timestamp))
         db_session.commit()
+
+    def dict(self):
+        return {
+            "value" : self.value,
+            "unit" : self.unit,
+            "timestamp" : self.timestamp
+        }
 
 # Create tables.
 Base.metadata.create_all(bind=engine)

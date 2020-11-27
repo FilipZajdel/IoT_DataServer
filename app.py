@@ -95,9 +95,13 @@ def forgot():
 @app.route('/sensors/<sensor_name>/readings')
 @login_required
 def readings(sensor_name):
-    readings = models.Sensor.find(sensor_name).readings()
+    sensor = models.Sensor.find(sensor_name)
+    if sensor is None:
+        return abort(404)
+
+    readings = sensor.readings()
     return render_template('pages/placeholder.readings.html', readings=readings,
-                            sensor_name=sensor_name)
+                            sensor=sensor)
 
 
 @app.route('/sensors')
@@ -148,6 +152,7 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
 
+import api
 #----------------------------------------------------------------------------#
 # Launch.
 #----------------------------------------------------------------------------#
