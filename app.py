@@ -11,6 +11,7 @@ import logging
 from logging import Formatter, FileHandler
 from forms import *
 from functools import wraps
+from datetime import datetime, timedelta
 import os
 
 #----------------------------------------------------------------------------#
@@ -96,12 +97,16 @@ def forgot():
 @login_required
 def readings(sensor_name):
     sensor = models.Sensor.find(sensor_name)
+    period_end = datetime.utcnow()
+    period_begin = period_end - timedelta(hours=1)
+
     if sensor is None:
         return abort(404)
 
     readings = sensor.readings()
     return render_template('pages/placeholder.readings.html', readings=readings,
-                            sensor=sensor)
+                            sensor=sensor, period_end=period_end, 
+                            period_begin=period_begin)
 
 
 @app.route('/sensors')

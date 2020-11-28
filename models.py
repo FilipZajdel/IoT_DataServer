@@ -15,15 +15,19 @@ Base = declarative_base()
 Base.query = db_session.query_property()
 
 association_table = db.Table("association", Base.metadata,
-    db.Column("Users_id", db.Integer, db.ForeignKey("Users.id")),
-    db.Column("Sensors_id", db.Integer, db.ForeignKey("Sensors.id"))
-)
+                             db.Column("Users_id", db.Integer,
+                                       db.ForeignKey("Users.id")),
+                             db.Column("Sensors_id", db.Integer,
+                                       db.ForeignKey("Sensors.id"))
+                             )
+
 
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
 # Set your classes here.
+
 
 class User(UserMixin, Base):
     __tablename__ = 'Users'
@@ -54,9 +58,10 @@ class User(UserMixin, Base):
     def create(name, email, password, priviledged=False):
 
         if (User._exist(name)):
-            logging.debug(f"User couldn't be created: {name} {email} {password}")
+            logging.debug(
+                f"User couldn't be created: {name} {email} {password}")
             return False
-        
+
         new_user = User(name=name, email=email, password=password,
                         priviledged=priviledged)
 
@@ -89,7 +94,7 @@ class User(UserMixin, Base):
         user = User.find(name)
         if user is not None:
             return user.password == password
-        
+
         return False
 
     def get_sensors(self):
@@ -121,15 +126,21 @@ class Sensor(Base):
 
     def find(name):
         return Sensor.query.filter_by(name=name).first()
-    
+
     def readings(self):
         return Reading.query.filter_by(sensor_id=self.id).all()
+
+    def get_readings_by_date(self, begin, end):
+        return Reading.query.filter(Reading.sensor_id == self.id) \
+                            .filter(Reading.timestamp >= begin) \
+                            .filter(Reading.timestamp <= end).all()
 
     def get(name=None):
         if name is None:
             return Sensor.query.all()
         else:
             return Sensor.find(name)
+
 
 class Reading(Base):
     __tablename__ = 'Readings'
@@ -151,15 +162,16 @@ class Reading(Base):
 
     def create(value, unit, sensor_id, timestamp=datetime.utcnow()):
         db_session.add(Reading(value=value, unit=unit, sensor_id=sensor_id,
-                        timestamp=timestamp))
+                               timestamp=timestamp))
         db_session.commit()
 
     def dict(self):
         return {
-            "value" : self.value,
-            "unit" : self.unit,
-            "timestamp" : self.timestamp
+            "value": self.value,
+            "unit": self.unit,
+            "timestamp": self.timestamp
         }
+
 
 # Create tables.
 Base.metadata.create_all(bind=engine)

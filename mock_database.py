@@ -1,6 +1,6 @@
 from models import User, Sensor, Reading
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 
 sensors = {"Termometer":("Celsius", "Temperature"), 
@@ -11,11 +11,23 @@ users = ["John", "Alex", "Rob", "Matt"]
 for sensor_name, (unit, quantity) in sensors.items():
     Sensor.create(sensor_name, quantity)
 
+# For the sake of tests
 for sensor_name, (unit, quantity) in sensors.items():
     for i in range(120, 180, 1):
-        t = datetime(2020, 11, 26, 17, 50, i%60)
+        t = datetime(2020, 11, 26, 17, i%60, 0)
         Reading.create(str(random.randint(20, 27)), unit, Sensor.find(sensor_name).id,
                        timestamp=t)
+
+# Let's have 4 readings per hour
+now = datetime.utcnow()
+sampling_interval = timedelta(minutes=15)
+sample_date = datetime(2020, 11, 26, 18)
+
+for sensor_name, (unit, quantity) in sensors.items():
+    while sample_date < now:
+        Reading.create(str(random.randint(20, 27)), unit, Sensor.find(sensor_name).id,
+                       timestamp=sample_date)
+        sample_date = sample_date + sampling_interval
 
 for user in users:
     User.create(name=user, email=f"{user}@domain.com", password="1234",

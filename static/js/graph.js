@@ -15,6 +15,55 @@ var chart = new Chart(ctx, {
                 },
                 distribution: 'series'
             }]
+        },
+        plugins: {
+            zoom: {
+                zoom: {
+                    enabled: true,
+                    mode: 'x',
+
+                    rangeMin: {
+                        x: null,
+                        y: null,
+                    },
+                    rangeMax: {
+                        x: null,
+                        y: null,
+                    },
+                    speed: 0.1,
+                    threshold: 2,
+                    sensitivity: 3,
+                    onZoom: function({ chart }) { console.log("Zooming !!"); },
+                },
+                pan: {
+                    enabled: true,
+                    mode: 'x',
+
+                    speed: 20,
+                    threshold: 10,
+                    rangeMin: {
+                        x: null,
+                        y: null,
+                    },
+                    rangeMax: {
+                        x: null,
+                        y: null,
+                    },
+
+                    onPan: function({ chart }) { console.log("Panning"); },
+                }
+            },
+
+            // pan: {
+            //     enabled: true,
+            //     mode: 'xy',
+            // },
+            // zoom: {
+            //     zoom: {
+            //         enabled: true,
+            //         mode: 'x',
+            //     }
+            // }
         }
     }
 });
@@ -42,7 +91,10 @@ function addSample(chart, sample, label, x_label) {
 }
 
 function getReadings(sensor_name, period, onDone) {
-    $.get("/api/sensors/" + sensor_name + "/readings", {})
+    $.get("/api/sensors/" + sensor_name + "/readings", {
+            "dateFrom": period.begin,
+            "dateTo": period.end
+        })
         .done(function(response) {
             console.log(response.readings)
             onDone(response)
@@ -59,6 +111,6 @@ function updateChart(response) {
     }
 }
 
-/* Note: sensor_name and label come from html template */
+/* Note: sensor_name, label, period come from html template */
 addDataset(chart, label, [])
-getReadings(sensor_name, "", updateChart)
+getReadings(sensor_name, initialPeriod, updateChart)
