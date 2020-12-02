@@ -1,5 +1,13 @@
 var ctx = document.getElementById("readingsChart");
 
+var samples = {};
+var axisLimits = {
+    xmin: 0,
+    xmax: 0,
+    xcache: 7200000
+};
+var duringDataUpdate = false
+
 var chart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -9,9 +17,25 @@ var chart = new Chart(ctx, {
     options: {
         scales: {
             xAxes: [{
+                id: 'time-axis',
                 type: 'time',
                 time: {
-                    unit: 'second'
+                    unit: 'minute'
+                },
+                beforeUpdate: function(evt) {
+                    if (isOlderDataNeeded(evt.min) && !duringDataUpdate) {
+                        console.log("Older data needed!")
+                        var beginDate = new Date(lastUpdatedPeriod.begin)
+                        beginDate.setHours(beginDate.getHours() - 2)
+
+                        lastUpdatedPeriod.end = lastUpdatedPeriod.begin
+                        lastUpdatedPeriod.begin = beginDate.toISOString()
+
+                        getReadings(sensor_name, lastUpdatedPeriod,
+                            updateSamplesAndChart)
+                    } else {
+                        console.log("Older data not needed!")
+                    }
                 },
                 distribution: 'series'
             }]
@@ -49,21 +73,9 @@ var chart = new Chart(ctx, {
                         x: null,
                         y: null,
                     },
-
                     onPan: function({ chart }) { console.log("Panning"); },
                 }
             },
-
-            // pan: {
-            //     enabled: true,
-            //     mode: 'xy',
-            // },
-            // zoom: {
-            //     zoom: {
-            //         enabled: true,
-            //         mode: 'x',
-            //     }
-            // }
         }
     }
 });
@@ -78,19 +90,25 @@ function addDataset(chart, label, data) {
     chart.update()
 }
 
-function addSample(chart, sample, label, x_label) {
-
-    for (var i = 0; i < chart.data.datasets.length; i++) {
-        if (chart.data.datasets[i].label === label) {
-            chart.data.datasets[i].data.push(sample)
-            chart.data.labels.push(x_label)
-            break;
-        }
+function addSamples(new_samples, dates) {
+    for (var i = 0; i < new_samples.length; i++) {
+        samples[dates[i]] = new_samples[i]
     }
-    chart.update();
+
+    console.log(samples)
+}
+
+function getSortedSamplesKeys() {
+    var keys = [...Object.keys(samples)]
+    keys.sort(compareDates)
+
+    console.log(keys)
+    return keys
 }
 
 function getReadings(sensor_name, period, onDone) {
+    duringDataUpdate = true
+
     $.get("/api/sensors/" + sensor_name + "/readings", {
             "dateFrom": period.begin,
             "dateTo": period.end
@@ -98,19 +116,53 @@ function getReadings(sensor_name, period, onDone) {
         .done(function(response) {
             console.log(response.readings)
             onDone(response)
+            duringDataUpdate = false
         })
         .fail(function() {
             console.log("getting new data failed")
+            duringDataUpdate = false
         })
 }
 
-function updateChart(response) {
-    for (i = 0; i < response.readings.length; i++) {
-        addSample(chart, response.readings[i].value, label,
-            response.readings[i].timestamp)
+function updateSamplesAndChart(response) {
+
+    var new_samples = []
+    var timestamps = []
+    var sorted_keys = []
+
+    for (var i = 0; i < response.readings.length; i++) {
+        new_samples.push(response.readings[i].value)
+        timestamps.push(response.readings[i].timestamp)
     }
+
+    addSamples(new_samples, timestamps)
+    sorted_keys = getSortedSamplesKeys()
+
+    chart.data.datasets[0].data = []
+
+    for (var i = 0; i < sorted_keys.length; i++) {
+        chart.data.datasets[0].data.push(samples[sorted_keys[i]])
+    }
+
+    chart.data.labels = [...sorted_keys];
+
+    axisLimits.xmin = (new Date(sorted_keys[0])).valueOf()
+    chart.update()
+}
+
+function compareDates(dateA, dateB) {
+    return (new Date(dateA)) - (new Date(dateB))
+}
+
+function isOlderDataNeeded(minX) {
+    return ((minX - axisLimits.xcache) < axisLimits.xmin)
+}
+
+function isNewerDataNeeded(chart) {
+    /* TODO: It was no purpose to use it, because chart is updated backwards */
+    return false
 }
 
 /* Note: sensor_name, label, period come from html template */
 addDataset(chart, label, [])
-getReadings(sensor_name, initialPeriod, updateChart)
+getReadings(sensor_name, lastUpdatedPeriod, updateSamplesAndChart)

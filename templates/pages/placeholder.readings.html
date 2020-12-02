@@ -1,9 +1,9 @@
-{% extends 'layouts/main.html' %} {% block title %}About{% endblock %} {% block content %}
+{% extends 'layouts/main.html' %} {% block title %} {{ sensor.name }} {% endblock %} {% block content %}
 
 <div class="page-header">
-    <h1>{{ sensor_name }}</h1>
+    <h1>Readings sensed by {{ sensor.name }}</h1>
 </div>
-<p class="lead">These are readings from {{ sensor_name }}</p>
+<!-- <p class="lead">These are readings from {{ sensor.name }}</p> -->
 
 <div style="margin:auto; width: 1200px; height: 700px">
     <canvas id="readingsChart"></canvas>
@@ -17,7 +17,7 @@
 <script>
     var sensor_name = "{{ sensor.name }}"
     var label = "{{ sensor.measured_quantity }}"
-    var initialPeriod = {
+    var lastUpdatedPeriod = {
         "begin": "{{ period_begin }}",
         "end": "{{ period_end }}"
     }

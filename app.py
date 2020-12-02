@@ -27,6 +27,7 @@ login_manager = LoginManager(app)
 # Automatically tear down SQLAlchemy.
 @app.teardown_request
 def shutdown_session(exception=None):
+    # TODO: Properly shutdown session
     db.session.remove()
 
 
@@ -98,16 +99,15 @@ def forgot():
 def readings(sensor_name):
     sensor = models.Sensor.find(sensor_name)
     period_end = datetime.utcnow()
-    period_begin = period_end - timedelta(hours=1)
+    period_begin = period_end - timedelta(days=2)
 
     if sensor is None:
         return abort(404)
 
     readings = sensor.readings()
     return render_template('pages/placeholder.readings.html', readings=readings,
-                            sensor=sensor, period_end=period_end, 
-                            period_begin=period_begin)
-
+                            sensor=sensor, period_end=period_end.isoformat(),
+                            period_begin=period_begin.isoformat())
 
 @app.route('/sensors')
 @login_required

@@ -19,8 +19,11 @@ def api_readings(sensor_name):
     if not api_readings_validate(request):
         return jsonify({}), 404
 
-    dateFrom = datetime.fromisoformat(request.args.get("dateFrom"))
-    dateTo = datetime.fromisoformat(request.args.get("dateTo"))
+    dateFrom = request.args.get("dateFrom").replace('z', '').replace('Z', '')
+    dateFrom = datetime.fromisoformat(dateFrom)
+
+    dateTo = request.args.get("dateTo").replace('z', '').replace('Z', '')
+    dateTo = datetime.fromisoformat(dateTo)
 
     readings = models.Sensor.find(sensor_name) \
                             .get_readings_by_date(dateFrom, dateTo)
@@ -37,5 +40,5 @@ def api_readings_validate(request):
     for arg, is_required in args.items():
         if arg not in request.args and is_required:
             return False
-    
+
     return True
