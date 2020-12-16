@@ -19,11 +19,12 @@ for sensor_name, (unit, quantity) in sensors.items():
                        timestamp=t)
 
 # Let's have 4 readings per hour
+start_date = datetime.utcnow() - timedelta(days=4)
 now = datetime.utcnow()
 sampling_interval = timedelta(minutes=15)
 
 for sensor_name, (unit, quantity) in sensors.items():
-    sample_date = datetime(2020, 11, 26, 18)
+    sample_date = start_date
     while sample_date < now:
         Reading.create(str(random.randint(20, 27)), unit, Sensor.find(sensor_name).id,
                        timestamp=sample_date)
