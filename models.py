@@ -3,9 +3,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import db, login_manager
 from flask_login import UserMixin
+import threading
 
 engine = create_engine('sqlite:///database.db', echo=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
@@ -172,6 +173,41 @@ class Reading(Base):
             "timestamp": self.timestamp
         }
 
+
+def save_external_db_record(record):
+    # ID, DATE, VALUE, UNIT, SENSOR_ID, SENSOR_TYPE (name)
+    sensor_name = record[5]
+    sensor = Sensor.find(sensor_name)
+
+    if None is sensor:
+        Sensor.create(name=sensor_name, measured_quantity=f"quantity of {sensor_name}")
+        sensor = Sensor.find(sensor_name)
+
+    Reading.create(value=record[2], unit=record[3], sensor_id=sensor.id,timestamp=record[1])
+
+
+from external_db import get_by_date
+
+previous_time = None
+sync_db_timer = None
+
+def sync_to_external_db_thread():
+    ## check last known date of reading
+    ## check external db for newer records
+    ## get newer records and save in our db
+    now = datetime.now()
+    if previous_time is None:
+        previous_time = now - timedelta(minutes=20)
+    
+    new_data = get_by_date(previous_time, now)
+    if new_data:
+        for record in new_data:
+            save_external_db_record(record)
+
+    sync_db_timer = threading.Timer(900, sync_to_external_db_thread)
+
+sync_db_timer = threading.Timer(900, sync_to_external_db_thread)
+sync_db_timer.start()
 
 # Create tables.
 Base.metadata.create_all(bind=engine)

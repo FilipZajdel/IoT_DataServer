@@ -3,9 +3,9 @@ from time import sleep
 from datetime import datetime, timedelta
 import random
 
-sensors = {"Termometer":("Celsius", "Temperature"), 
-           "Hygrometer":("%", "Humidity"),
-           "Manometer":("bar", "Pressure")}
+sensors = {"Termometer (mock)":("Celsius", "Temperature"), 
+           "Hygrometer (mock)":("%", "Humidity"),
+           "Manometer (mock)":("bar", "Pressure")}
 users = ["John", "Alex", "Rob", "Matt"]
 
 for sensor_name, (unit, quantity) in sensors.items():
@@ -34,12 +34,12 @@ for user in users:
     User.create(name=user, email=f"{user}@domain.com", password="1234",
                 priviledged=False)
 
-User.find("Alex").grant_sensor_access(Sensor.find("Termometer"))
-User.find("Alex").grant_sensor_access(Sensor.find("Manometer"))
-User.find("Rob").grant_sensor_access(Sensor.find("Hygrometer"))
-User.find("Matt").grant_sensor_access(Sensor.find("Manometer"))
-User.find("John").grant_sensor_access(Sensor.find("Hygrometer"))
-User.find("John").grant_sensor_access(Sensor.find("Manometer"))
+User.find("Alex").grant_sensor_access(Sensor.find("Termometer (mock)"))
+User.find("Alex").grant_sensor_access(Sensor.find("Manometer (mock)"))
+User.find("Rob").grant_sensor_access(Sensor.find("Hygrometer (mock)"))
+User.find("Matt").grant_sensor_access(Sensor.find("Manometer (mock)"))
+User.find("John").grant_sensor_access(Sensor.find("Hygrometer (mock)"))
+User.find("John").grant_sensor_access(Sensor.find("Manometer (mock)"))
 
 # create super user
 User.create(name="sudo", email="admin@domain.com", password="agh3nv-4dmin",
