@@ -10,9 +10,9 @@ from flask_login import (login_required, LoginManager, current_user, login_user,
 import logging
 from logging import Formatter, FileHandler
 from forms import *
-from functools import wraps
+# from functools import wraps
 from datetime import datetime, timedelta
-import os
+import json
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -29,9 +29,6 @@ login_manager = LoginManager(app)
 def shutdown_session(exception=None):
     # TODO: Properly shutdown session
     db.session.remove()
-
-
-# Login required decorator.
 
 # def login_required(test):
 #     @wraps(test)
@@ -68,13 +65,17 @@ def login():
     if form.validate_on_submit():
         if not models.User.check_creds(form.name.data, form.password.data):
             return render_template('forms/login.html', form=form)
-        
+
         print(models.User.find(form.name.data))
         login_user(models.User.find(form.name.data))
         return redirect(url_for('home'))
 
     return render_template('forms/login.html', form=form)
 
+# Login manager decorator
+@login_manager.user_loader
+def load_user(id):
+    return models.User.query.get(int(id))
 
 @app.route('/logout')
 @login_required
@@ -121,7 +122,7 @@ def users():
     if not current_user.priviledged:
         return abort(403)
 
-    return render_template('pages/placeholder.users.html', 
+    return render_template('pages/placeholder.users.html',
                            users=models.User.get_all())
 
 @app.route('/user/<user_name>')
@@ -157,14 +158,16 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
 
-import api
+from api import *
 #----------------------------------------------------------------------------#
 # Launch.
 #----------------------------------------------------------------------------#
 
 # Default port:
 if __name__ == '__main__':
-    app.run()
+    app.config.from_file("config/flask.json", load=json.load)
+    app.run(host=app.config.get("ip", "localhost"),
+            port=int(app.config.get("port", 5000)))
 
 # Or specify port manually:
 '''

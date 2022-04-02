@@ -4,7 +4,7 @@ import os
 
 """
     This is not a proper solution !!!
-    
+
     Assuming that table looks like:
     ID, DATE, VALUE, UNIT, SENSOR, TYPE
 """
@@ -39,7 +39,7 @@ def get_all():
     return data
 
 def get_by_date(begin, end):
-    
+
     db = connector.connect(host=db_host, database=db_name, user=db_user, password=db_password)
     cursor = db.cursor()
     cursor.execute(f"SELECT * FROM data WHERE DATE BETWEEN \'{begin}\' AND \'{end}\'")

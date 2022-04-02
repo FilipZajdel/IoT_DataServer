@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import (login_required, LoginManager, current_user, login_user,
                          logout_user)
 import models
-from app import app, db
+from app import app
 from datetime import datetime
 
 endpoints_args = {
@@ -35,7 +35,7 @@ def api_readings(sensor_name):
 def api_readings_validate(request):
     if request.args is None or len(request.args) == 0:
         return False
-    
+
     args = endpoints_args["api_readings"]
     for arg, is_required in args.items():
         if arg not in request.args and is_required:

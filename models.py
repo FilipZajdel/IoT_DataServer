@@ -6,9 +6,9 @@ import logging
 from datetime import datetime, timedelta
 from app import db, login_manager
 from flask_login import UserMixin
-import threading
 
-engine = create_engine('sqlite:///database.db', echo=True)
+engine = create_engine('sqlite:///database.db', echo=True,
+                       connect_args={'check_same_thread': False})
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
@@ -21,13 +21,6 @@ association_table = db.Table("association", Base.metadata,
                              db.Column("Sensors_id", db.Integer,
                                        db.ForeignKey("Sensors.id"))
                              )
-
-
-@login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
-
-# Set your classes here.
 
 
 class User(UserMixin, Base):
@@ -186,28 +179,30 @@ def save_external_db_record(record):
     Reading.create(value=record[2], unit=record[3], sensor_id=sensor.id,timestamp=record[1])
 
 
-from external_db import get_by_date
+# Dead code, left for reference
+# if config.get("use_external_db"):
+#     from external_db import get_by_date
 
-previous_time = None
-sync_db_timer = None
+#     previous_time = None
+#     sync_db_timer = None
 
-def sync_to_external_db_thread():
-    ## check last known date of reading
-    ## check external db for newer records
-    ## get newer records and save in our db
-    now = datetime.now()
-    if previous_time is None:
-        previous_time = now - timedelta(minutes=20)
-    
-    new_data = get_by_date(previous_time, now)
-    if new_data:
-        for record in new_data:
-            save_external_db_record(record)
+#     def sync_to_external_db_thread():
+#         ## check last known date of reading
+#         ## check external db for newer records
+#         ## get newer records and save in our db
+#         now = datetime.now()
+#         if previous_time is None:
+#             previous_time = now - timedelta(minutes=20)
 
-    sync_db_timer = threading.Timer(900, sync_to_external_db_thread)
+#         new_data = get_by_date(previous_time, now)
+#         if new_data:
+#             for record in new_data:
+#                 save_external_db_record(record)
 
-sync_db_timer = threading.Timer(900, sync_to_external_db_thread)
-sync_db_timer.start()
+#         sync_db_timer = threading.Timer(900, sync_to_external_db_thread)
+
+#     sync_db_timer = threading.Timer(900, sync_to_external_db_thread)
+#     sync_db_timer.start()
 
 # Create tables.
 Base.metadata.create_all(bind=engine)

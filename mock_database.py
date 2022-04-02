@@ -14,7 +14,7 @@ for sensor_name, (unit, quantity) in sensors.items():
 # For the sake of tests
 for sensor_name, (unit, quantity) in sensors.items():
     for i in range(120, 180, 1):
-        t = datetime(2020, 11, 26, 17, i%60, 0)
+        t = datetime(2022, 3, 31, 17, i%60, 0)
         Reading.create(str(random.randint(20, 27)), unit, Sensor.find(sensor_name).id,
                        timestamp=t)
 
